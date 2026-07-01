@@ -19,7 +19,7 @@ import 'package:simple_gradient_text/simple_gradient_text.dart';
 class DomovNastaveneModel extends FlutterFlowModel<DomovNastaveneWidget> {
   ///  Local state fields for this page.
 
-  String searchText = '%%';
+  String searchText = '';
 
   ///  State fields for stateful widgets in this page.
 
