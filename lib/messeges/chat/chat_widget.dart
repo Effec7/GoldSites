@@ -76,7 +76,7 @@ class _ChatWidgetState extends State<ChatWidget> {
             onPressed: () async {
               logFirebaseEvent('CHAT_arrow_back_ios_rounded_ICN_ON_TAP');
               logFirebaseEvent('IconButton_navigate_back');
-              context.pop();
+              context.safePop();
             },
           ),
           title: GradientText(

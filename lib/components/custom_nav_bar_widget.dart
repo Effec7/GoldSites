@@ -81,10 +81,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                         logFirebaseEvent(
                             'CUSTOM_NAV_BAR_COMP_Icon_40vcyupq_ON_TAP');
                         logFirebaseEvent('Icon_navigate_to');
-                        if (Navigator.of(context).canPop()) {
-                          context.pop();
-                        }
-                        context.pushNamed(
+                        context.goNamed(
                           DomovNastaveneWidget.routeName,
                           extra: <String, dynamic>{
                             '__transition_info__': TransitionInfo(
@@ -142,10 +139,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                             logFirebaseEvent(
                                 'CUSTOM_NAV_BAR_COMP_Icon_yks8u77d_ON_TAP');
                             logFirebaseEvent('Icon_navigate_to');
-                            if (Navigator.of(context).canPop()) {
-                              context.pop();
-                            }
-                            context.pushNamed(
+                            context.goNamed(
                               NotifikacieWidget.routeName,
                               extra: <String, dynamic>{
                                 '__transition_info__': TransitionInfo(
@@ -246,10 +240,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                             logFirebaseEvent(
                                 'CUSTOM_NAV_BAR_COMP_Icon_ajxyw6d5_ON_TAP');
                             logFirebaseEvent('Icon_navigate_to');
-                            if (Navigator.of(context).canPop()) {
-                              context.pop();
-                            }
-                            context.pushNamed(
+                            context.goNamed(
                               MessagePageWidget.routeName,
                               extra: <String, dynamic>{
                                 '__transition_info__': TransitionInfo(
@@ -348,10 +339,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                         logFirebaseEvent(
                             'CUSTOM_NAV_BAR_COMP_Icon_ahzwin82_ON_TAP');
                         logFirebaseEvent('Icon_navigate_to');
-                        if (Navigator.of(context).canPop()) {
-                          context.pop();
-                        }
-                        context.pushNamed(
+                        context.goNamed(
                           OblubeneSluzbyNastaveneWidget.routeName,
                           extra: <String, dynamic>{
                             '__transition_info__': TransitionInfo(
@@ -407,10 +395,7 @@ class _CustomNavBarWidgetState extends State<CustomNavBarWidget> {
                         logFirebaseEvent(
                             'CUSTOM_NAV_BAR_COMP_Icon_mree5fss_ON_TAP');
                         logFirebaseEvent('Icon_navigate_to');
-                        if (Navigator.of(context).canPop()) {
-                          context.pop();
-                        }
-                        context.pushNamed(
+                        context.goNamed(
                           PonukaWidget.routeName,
                           extra: <String, dynamic>{
                             '__transition_info__': TransitionInfo(

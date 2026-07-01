@@ -67,7 +67,7 @@ class _VyberPlatbyWidgetState extends State<VyberPlatbyWidget> {
             onPressed: () async {
               logFirebaseEvent('VYBER_PLATBY_arrow_back_ios_new_ICN_ON_T');
               logFirebaseEvent('IconButton_navigate_back');
-              context.pop();
+              context.safePop();
             },
           ),
           title: GradientText(

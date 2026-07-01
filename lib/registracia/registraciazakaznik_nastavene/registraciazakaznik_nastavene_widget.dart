@@ -99,10 +99,7 @@ class _RegistraciazakaznikNastaveneWidgetState
                 onPressed: () async {
                   logFirebaseEvent('REGISTRACIAZAKAZNIK_NASTAVENE_arrow_back');
                   logFirebaseEvent('IconButton_navigate_to');
-                  if (Navigator.of(context).canPop()) {
-                    context.pop();
-                  }
-                  context.pushNamed(
+                  context.goNamed(
                     PrihlasenieNastaveneWidget.routeName,
                     extra: <String, dynamic>{
                       '__transition_info__': TransitionInfo(
