@@ -34,6 +34,124 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
   late ProviderSetupAvailabilityPageNastaveneModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _availabilityLoadStarted = false;
+  bool _availabilityLoaded = false;
+  bool _isSavingAvailability = false;
+
+  ProviderAvailabilityRow? _availabilityForDay(
+    List<ProviderAvailabilityRow> rows,
+    int dayOfWeek,
+  ) {
+    for (final row in rows) {
+      if (row.dayOfWeek == dayOfWeek) {
+        return row;
+      }
+    }
+    return null;
+  }
+
+  String _timeLabel(PostgresTime? value, String fallback) {
+    final time = value?.time;
+    if (time == null) {
+      return fallback;
+    }
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _loadAvailability(String providerProfileId) async {
+    try {
+      final rows = await ProviderAvailabilityTable().queryRows(
+        queryFn: (q) => q.eqOrNull(
+          'provider_profile_id',
+          providerProfileId,
+        ),
+      );
+      if (!mounted) {
+        return;
+      }
+
+      ProviderAvailabilityRow? timeRow;
+      for (final row in rows) {
+        if (row.startTime != null && row.endTime != null) {
+          timeRow = row;
+          if (row.isAvailable == true) {
+            break;
+          }
+        }
+      }
+
+      final startTime = _timeLabel(timeRow?.startTime, '09:00');
+      final endTime = _timeLabel(timeRow?.endTime, '17:00');
+      safeSetState(() {
+        _model.mondaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 1)?.isAvailable ?? true;
+        _model.tuesdaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 2)?.isAvailable ?? true;
+        _model.wednesdaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 3)?.isAvailable ?? true;
+        _model.thursdaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 4)?.isAvailable ?? true;
+        _model.fridaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 5)?.isAvailable ?? true;
+        _model.saturdaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 6)?.isAvailable ?? false;
+        _model.sundaySwitchRowModel.switchComponentModel.switchValue =
+            _availabilityForDay(rows, 7)?.isAvailable ?? false;
+        _model.zaciatokPraceSwitchValue = startTime;
+        _model.koniecPraceSwitchValue = endTime;
+        _model.zaciatokPraceSwitchValueController?.value = startTime;
+        _model.koniecPraceSwitchValueController?.value = endTime;
+        _availabilityLoaded = true;
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Dostupnosť sa nepodarilo načítať.'),
+            duration: Duration(milliseconds: 4000),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveAvailabilityDay({
+    required String providerProfileId,
+    required List<ProviderAvailabilityRow> existingRows,
+    required int dayOfWeek,
+    required String dayName,
+    required bool isAvailable,
+    required String startTime,
+    required String endTime,
+  }) async {
+    final data = <String, dynamic>{
+      'is_available': isAvailable,
+      'start_time': supaSerialize<PostgresTime>(
+        PostgresTime.tryParse(startTime),
+      ),
+      'end_time': supaSerialize<PostgresTime>(
+        PostgresTime.tryParse(endTime),
+      ),
+      'slot_minutes': 60,
+      'day_name_sk': dayName,
+      'updated_at': supaSerialize<DateTime>(getCurrentTimestamp),
+    };
+
+    if (_availabilityForDay(existingRows, dayOfWeek) != null) {
+      await ProviderAvailabilityTable().update(
+        data: data,
+        matchingRows: (rows) => rows
+            .eqOrNull('provider_profile_id', providerProfileId)
+            .eqOrNull('day_of_week', dayOfWeek),
+      );
+    } else {
+      await ProviderAvailabilityTable().insert({
+        'provider_profile_id': providerProfileId,
+        'day_of_week': dayOfWeek,
+        ...data,
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -88,6 +206,17 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                 ? providerSetupAvailabilityPageNastaveneProviderProfilesRowList
                     .first
                 : null;
+
+        final providerProfileId =
+            providerSetupAvailabilityPageNastaveneProviderProfilesRow?.id;
+        if (!_availabilityLoadStarted &&
+            providerProfileId != null &&
+            providerProfileId.isNotEmpty) {
+          _availabilityLoadStarted = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _loadAvailability(providerProfileId);
+          });
+        }
 
         return GestureDetector(
           onTap: () {
@@ -353,7 +482,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: true,
+                                                active: _model
+                                                        .mondaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    true,
                                                 label: 'Pondelok',
                                               ),
                                             ),
@@ -363,7 +496,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: true,
+                                                active: _model
+                                                        .tuesdaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    true,
                                                 label: 'Utorok',
                                               ),
                                             ),
@@ -373,7 +510,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: true,
+                                                active: _model
+                                                        .wednesdaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    true,
                                                 label: 'Streda',
                                               ),
                                             ),
@@ -383,7 +524,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: true,
+                                                active: _model
+                                                        .thursdaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    true,
                                                 label: 'Štvrtok',
                                               ),
                                             ),
@@ -393,7 +538,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: true,
+                                                active: _model
+                                                        .fridaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    true,
                                                 label: 'Piatok',
                                               ),
                                             ),
@@ -403,7 +552,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: false,
+                                                active: _model
+                                                        .saturdaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    false,
                                                 label: 'Sobota',
                                               ),
                                             ),
@@ -413,7 +566,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               updateCallback: () =>
                                                   safeSetState(() {}),
                                               child: DaySwitchRow2Widget(
-                                                active: false,
+                                                active: _model
+                                                        .sundaySwitchRowModel
+                                                        .switchComponentModel
+                                                        .switchValue ??
+                                                    false,
                                                 label: 'Nedeľa',
                                               ),
                                             ),
@@ -1126,13 +1283,14 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                         child: Align(
                           alignment: AlignmentDirectional(0.0, 0.0),
                           child: FutureBuilder<List<ProviderAvailabilityRow>>(
-                            future: ProviderAvailabilityTable().queryRows(
-                              queryFn: (q) => q.eqOrNull(
-                                'provider_profile_id',
-                                providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                    ?.id,
-                              ),
-                            ),
+                            future: providerProfileId != null
+                                ? ProviderAvailabilityTable().queryRows(
+                                    queryFn: (q) => q.eqOrNull(
+                                      'provider_profile_id',
+                                      providerProfileId,
+                                    ),
+                                  )
+                                : Future.value(<ProviderAvailabilityRow>[]),
                             builder: (context, snapshot) {
                               // Customize what your widget looks like when it's loading.
                               if (!snapshot.hasData) {
@@ -1166,158 +1324,151 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                       providerSetupAvailabilityPageNastaveneProviderProfilesRow
                                               ?.id !=
                                           '') {
-                                    if (completeAndActivateProfileProviderAvailabilityRowList
-                                            .length ==
-                                        7) {
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': true,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Pondelok',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              1,
-                                            ),
+                                    if (!_availabilityLoaded) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Počkajte, kým sa dostupnosť načíta.',
+                                            style: TextStyle(),
+                                          ),
+                                          duration:
+                                              Duration(milliseconds: 4000),
+                                        ),
                                       );
+                                      return;
+                                    }
+                                    if (_isSavingAvailability) {
+                                      return;
+                                    }
+                                    final startTime =
+                                        _model.zaciatokPraceSwitchValue ??
+                                            '09:00';
+                                    final endTime =
+                                        _model.koniecPraceSwitchValue ?? '17:00';
+                                    if (startTime.compareTo(endTime) >= 0) {
                                       logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': true,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Utorok',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              2,
-                                            ),
+                                          'CompleteAndActivateProfile_show_snack_bar');
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Čas ukončenia musí byť neskôr ako čas začiatku.',
+                                            style: TextStyle(),
+                                          ),
+                                          duration:
+                                              Duration(milliseconds: 4000),
+                                        ),
                                       );
+                                      return;
+                                    }
+
+                                    safeSetState(
+                                        () => _isSavingAvailability = true);
+                                    try {
                                       logFirebaseEvent(
                                           'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': true,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Streda',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              3,
-                                            ),
+                                      final profileId =
+                                          providerSetupAvailabilityPageNastaveneProviderProfilesRow!
+                                              .id!;
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 1,
+                                        dayName: 'Pondelok',
+                                        isAvailable: _model
+                                                .mondaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            true,
+                                        startTime: startTime,
+                                        endTime: endTime,
                                       );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': true,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Štvrtok',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              4,
-                                            ),
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 2,
+                                        dayName: 'Utorok',
+                                        isAvailable: _model
+                                                .tuesdaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            true,
+                                        startTime: startTime,
+                                        endTime: endTime,
                                       );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': true,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Piatok',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              5,
-                                            ),
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 3,
+                                        dayName: 'Streda',
+                                        isAvailable: _model
+                                                .wednesdaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            true,
+                                        startTime: startTime,
+                                        endTime: endTime,
                                       );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': false,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Sobota',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              6,
-                                            ),
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 4,
+                                        dayName: 'Štvrtok',
+                                        isAvailable: _model
+                                                .thursdaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            true,
+                                        startTime: startTime,
+                                        endTime: endTime,
                                       );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().update(
-                                        data: {
-                                          'is_available': false,
-                                          'slot_minutes': 60,
-                                          'day_name_sk': 'Nedeľa',
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows
-                                            .eqOrNull(
-                                              'provider_profile_id',
-                                              providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                  ?.id,
-                                            )
-                                            .eqOrNull(
-                                              'day_of_week',
-                                              7,
-                                            ),
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 5,
+                                        dayName: 'Piatok',
+                                        isAvailable: _model
+                                                .fridaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            true,
+                                        startTime: startTime,
+                                        endTime: endTime,
                                       );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 6,
+                                        dayName: 'Sobota',
+                                        isAvailable: _model
+                                                .saturdaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            false,
+                                        startTime: startTime,
+                                        endTime: endTime,
+                                      );
+                                      await _saveAvailabilityDay(
+                                        providerProfileId: profileId,
+                                        existingRows:
+                                            completeAndActivateProfileProviderAvailabilityRowList,
+                                        dayOfWeek: 7,
+                                        dayName: 'Nedeľa',
+                                        isAvailable: _model
+                                                .sundaySwitchRowModel
+                                                .switchComponentModel
+                                                .switchValue ??
+                                            false,
+                                        startTime: startTime,
+                                        endTime: endTime,
+                                      );
                                       await ProviderProfilesTable().update(
                                         data: {
                                           'onboarding_completed': true,
@@ -1337,8 +1488,7 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                       FFAppState().providerOnboardingCompleted =
                                           true;
                                       FFAppState().currentProviderProfileId =
-                                          providerSetupAvailabilityPageNastaveneProviderProfilesRow!
-                                              .id!;
+                                          profileId;
                                       safeSetState(() {});
                                       logFirebaseEvent(
                                           'CompleteAndActivateProfile_show_snack_ba');
@@ -1360,145 +1510,7 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                       }
                                       context.pushNamed(
                                           MojeSluzbyNastaveneWidget.routeName);
-                                    } else if (completeAndActivateProfileProviderAvailabilityRowList
-                                            .length ==
-                                        0) {
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 1,
-                                        'is_available': true,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Pondelok',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 2,
-                                        'is_available': true,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Utorok',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 3,
-                                        'is_available': true,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Streda',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 4,
-                                        'is_available': true,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Štvrtok',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 5,
-                                        'is_available': true,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Piatok',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 6,
-                                        'is_available': false,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Sobota',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderAvailabilityTable().insert({
-                                        'provider_profile_id':
-                                            providerSetupAvailabilityPageNastaveneProviderProfilesRow
-                                                ?.id,
-                                        'day_of_week': 7,
-                                        'is_available': false,
-                                        'slot_minutes': 60,
-                                        'day_name_sk': 'Nedeľa',
-                                        'updated_at': supaSerialize<DateTime>(
-                                            getCurrentTimestamp),
-                                      });
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_backend_call');
-                                      await ProviderProfilesTable().update(
-                                        data: {
-                                          'onboarding_completed': true,
-                                          'onboarding_step': 4,
-                                          'is_active': true,
-                                          'updated_at': supaSerialize<DateTime>(
-                                              getCurrentTimestamp),
-                                        },
-                                        matchingRows: (rows) => rows.eqOrNull(
-                                          'user_id',
-                                          currentUserUid,
-                                        ),
-                                      );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_update_app_st');
-                                      FFAppState().isProvider = true;
-                                      FFAppState().providerOnboardingCompleted =
-                                          true;
-                                      FFAppState().currentProviderProfileId =
-                                          providerSetupAvailabilityPageNastaveneProviderProfilesRow!
-                                              .id!;
-                                      safeSetState(() {});
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_show_snack_ba');
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Profil poskytovateľa bol aktivovaný.',
-                                            style: TextStyle(),
-                                          ),
-                                          duration:
-                                              Duration(milliseconds: 4000),
-                                        ),
-                                      );
-                                      logFirebaseEvent(
-                                          'CompleteAndActivateProfile_navigate_to');
-                                      if (Navigator.of(context).canPop()) {
-                                        context.pop();
-                                      }
-                                      context.pushNamed(
-                                          MojeSluzbyNastaveneWidget.routeName);
-                                    } else {
+                                    } catch (_) {
                                       logFirebaseEvent(
                                           'CompleteAndActivateProfile_show_snack_ba');
                                       ScaffoldMessenger.of(context)
@@ -1512,6 +1524,11 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                               Duration(milliseconds: 4000),
                                         ),
                                       );
+                                    } finally {
+                                      if (mounted) {
+                                        safeSetState(() =>
+                                            _isSavingAvailability = false);
+                                      }
                                     }
                                   } else {
                                     logFirebaseEvent(
@@ -1538,8 +1555,10 @@ class _ProviderSetupAvailabilityPageNastaveneWidgetState
                                     variant: 'primary',
                                     size: 'large',
                                     full_width: true,
-                                    loading: false,
-                                    disabled: false,
+                                    loading: !_availabilityLoaded ||
+                                        _isSavingAvailability,
+                                    disabled: !_availabilityLoaded ||
+                                        _isSavingAvailability,
                                   ),
                                 ),
                               );
