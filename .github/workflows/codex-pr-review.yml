@@ -1,0 +1,53 @@
+name: Codex PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  codex-review:
+    name: Codex review
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      - name: Skip when OPENAI_API_KEY is missing
+        if: ${{ env.OPENAI_API_KEY == '' }}
+        run: |
+          echo "OPENAI_API_KEY is not configured. Add it in GitHub repo Settings > Secrets and variables > Actions."
+
+      - name: Checkout pull request
+        if: ${{ env.OPENAI_API_KEY != '' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Codex review
+        if: ${{ env.OPENAI_API_KEY != '' }}
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/prompts/pr-review.md
+          output-file: codex-output.md
+
+      - name: Post Codex review comment
+        if: ${{ env.OPENAI_API_KEY != '' && github.event_name == 'pull_request' && steps.run_codex.outputs.final-message != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Codex PR Review\n\n${{ steps.run_codex.outputs.final-message }}`
+            });
