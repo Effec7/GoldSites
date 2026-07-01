@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "617173431700",
+    "project_id": "gold-sites",
+    "storage_bucket": "gold-sites.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:617173431700:android:6bcf772e7a6b1bb9a98b81",
+        "android_client_info": {
+          "package_name": "com.goldsites.goldsites"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDo-1AkYkwmN2LyPWQSFJ5Ds_naUKg-cH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

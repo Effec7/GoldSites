@@ -1,0 +1,77 @@
+# GoldSites / Flutter repo ignore rules
+
+# Dart / Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Generated / local Flutter files
+**/GeneratedPluginRegistrant.*
+**/generated_plugin_registrant.*
+
+# Android
+android/.gradle/
+android/captures/
+android/local.properties
+android/key.properties
+android/**/*.jks
+android/**/*.keystore
+android/**/gradle-wrapper.jar
+
+# iOS / macOS
+**/Pods/
+**/.symlinks/
+**/DerivedData/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Runner/GeneratedPluginRegistrant.*
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# IDE/editor
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs / coverage
+*.log
+coverage/
+
+# Firebase functions
+firebase/functions/node_modules/
+firebase/functions/.runtimeconfig.json
+firebase/functions/lib/
+firebase/functions/package-lock.json
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Secrets / signing material - never commit these
+*.p8
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.cer
+*.csr
+*.pem
+*.key
+*.jks
+*.keystore
+
+# Do NOT make this repo public while client config files are committed:
+# - android/app/google-services.json
+# - ios/Runner/GoogleService-Info.plist
