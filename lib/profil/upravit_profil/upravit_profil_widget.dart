@@ -150,8 +150,11 @@ class _UpravitProfilWidgetState extends State<UpravitProfilWidget> {
                               color: FlutterFlowTheme.of(context).primary,
                               size: 24.0,
                             ),
-                            onPressed: () {
-                              print('IconButton pressed ...');
+                            onPressed: () async {
+                              logFirebaseEvent(
+                                  'UPRAVIT_PROFIL_arrow_back_ios_ICN_ON_TAP');
+                              logFirebaseEvent('IconButton_navigate_back');
+                              context.safePop();
                             },
                           ),
                         ),

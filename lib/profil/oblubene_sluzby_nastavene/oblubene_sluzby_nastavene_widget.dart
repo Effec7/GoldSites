@@ -82,6 +82,23 @@ class _OblubeneSluzbyNastaveneWidgetState
         appBar: AppBar(
           backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
           automaticallyImplyLeading: false,
+          leading: FlutterFlowIconButton(
+            borderColor: Colors.transparent,
+            borderRadius: 12.0,
+            borderWidth: 0.0,
+            buttonSize: 44.0,
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: FlutterFlowTheme.of(context).primary,
+              size: 24.0,
+            ),
+            onPressed: () async {
+              logFirebaseEvent(
+                  'OBLUBENE_SLUZBY_NASTAVENE_arrow_back_ios_ICN');
+              logFirebaseEvent('IconButton_navigate_back');
+              context.safePop();
+            },
+          ),
           title: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

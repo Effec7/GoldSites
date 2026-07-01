@@ -90,7 +90,7 @@ class _SupportPageWidgetState extends State<SupportPageWidget> {
             onPressed: () async {
               logFirebaseEvent('SUPPORT_arrow_back_ios_new_rounded_ICN_O');
               logFirebaseEvent('IconButton_navigate_back');
-              context.pop();
+              context.safePop();
             },
           ),
           title: GradientText(

@@ -64,7 +64,7 @@ class _OchranaOsobnychUdajovWidgetState
             onTap: () async {
               logFirebaseEvent('OCHRANA_OSOBNYCH_UDAJOV_Icon_msw3mtmt_ON');
               logFirebaseEvent('Icon_navigate_back');
-              context.pop();
+              context.safePop();
             },
             child: Icon(
               Icons.arrow_back_ios_rounded,
