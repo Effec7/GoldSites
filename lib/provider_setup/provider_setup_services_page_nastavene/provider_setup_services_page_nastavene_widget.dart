@@ -1150,7 +1150,7 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                             await selectMediaWithSourceBottomSheet(
                                           context: context,
                                           storageFolderPath:
-                                              'services/[Current User UID]/main',
+                                              'services/$currentUserUid/main',
                                           maxWidth: 1600.00,
                                           maxHeight: 1600.00,
                                           imageQuality: 80,
@@ -1190,9 +1190,16 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                               bucketName: 'service-images',
                                               selectedFiles: selectedMedia,
                                             );
+                                          } catch (_) {
+                                            showUploadMessage(
+                                              context,
+                                              'Fotografiu sa nepodarilo nahrať.',
+                                            );
+                                            return;
                                           } finally {
-                                            _model.isDataUploading_uploadDataOid =
-                                                false;
+                                            safeSetState(() => _model
+                                                    .isDataUploading_uploadDataOid =
+                                                false);
                                           }
                                           if (selectedUploadedFiles.length ==
                                                   selectedMedia.length &&
@@ -1205,15 +1212,21 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                   downloadUrls.first;
                                             });
                                           } else {
-                                            safeSetState(() {});
+                                            showUploadMessage(
+                                              context,
+                                              'Fotografiu sa nepodarilo nahrať.',
+                                            );
                                             return;
                                           }
                                         }
 
                                         logFirebaseEvent(
                                             'Container_update_page_state');
-                                        _model.mainImageUrl = _model
-                                            .uploadedFileUrl_uploadDataOid;
+                                        if (_model.uploadedFileUrl_uploadDataOid
+                                            .isNotEmpty) {
+                                          _model.mainImageUrl = _model
+                                              .uploadedFileUrl_uploadDataOid;
+                                        }
                                         safeSetState(() {});
                                       },
                                       child: Container(
@@ -1355,17 +1368,27 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                 ].divide(SizedBox(height: 6.0)),
                                               ),
                                             ),
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              child: Image.network(
-                                                _model
-                                                    .uploadedFileUrl_uploadDataOid,
-                                                width: 317.53,
-                                                height: 200.0,
-                                                fit: BoxFit.cover,
+                                            if (_model.mainImageUrl?.isNotEmpty ??
+                                                false)
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                child: Image.network(
+                                                  _model.mainImageUrl!,
+                                                  width: 317.53,
+                                                  height: 200.0,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                          stackTrace) =>
+                                                      Center(
+                                                    child: Icon(
+                                                      Icons.image_outlined,
+                                                      color: Color(0xFFD4AF37),
+                                                      size: 36.0,
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                            ),
                                           ],
                                         ),
                                       ),
@@ -1429,7 +1452,7 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                   await selectMediaWithSourceBottomSheet(
                                                 context: context,
                                                 storageFolderPath:
-                                                    'services/[Current User UID]/gallery',
+                                                    'services/$currentUserUid/gallery',
                                                 maxWidth: 1600.00,
                                                 maxHeight: 1600.00,
                                                 imageQuality: 80,
@@ -1477,9 +1500,16 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                     selectedFiles:
                                                         selectedMedia,
                                                   );
+                                                } catch (_) {
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
+                                                  return;
                                                 } finally {
-                                                  _model.isDataUploading_uploadDataV96 =
-                                                      false;
+                                                  safeSetState(() => _model
+                                                          .isDataUploading_uploadDataV96 =
+                                                      false);
                                                 }
                                                 if (selectedUploadedFiles
                                                             .length ==
@@ -1494,15 +1524,25 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                         downloadUrls.first;
                                                   });
                                                 } else {
-                                                  safeSetState(() {});
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
                                                   return;
                                                 }
                                               }
 
                                               logFirebaseEvent(
                                                   'Container_update_page_state');
-                                              _model.addToGalleryurls(_model
-                                                  .uploadedFileUrl_uploadDataV96);
+                                              if (_model
+                                                  .uploadedFileUrl_uploadDataV96
+                                                  .isNotEmpty) {
+                                                _model.setGalleryUrl(
+                                                  1,
+                                                  _model
+                                                      .uploadedFileUrl_uploadDataV96,
+                                                );
+                                              }
                                               safeSetState(() {});
                                             },
                                             child: Container(
@@ -1612,7 +1652,7 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                   await selectMediaWithSourceBottomSheet(
                                                 context: context,
                                                 storageFolderPath:
-                                                    'services/[Current User UID]/gallery',
+                                                    'services/$currentUserUid/gallery',
                                                 maxWidth: 1600.00,
                                                 maxHeight: 1600.00,
                                                 imageQuality: 80,
@@ -1660,9 +1700,16 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                     selectedFiles:
                                                         selectedMedia,
                                                   );
+                                                } catch (_) {
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
+                                                  return;
                                                 } finally {
-                                                  _model.isDataUploading_uploadDataQpo =
-                                                      false;
+                                                  safeSetState(() => _model
+                                                          .isDataUploading_uploadDataQpo =
+                                                      false);
                                                 }
                                                 if (selectedUploadedFiles
                                                             .length ==
@@ -1677,15 +1724,25 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                         downloadUrls.first;
                                                   });
                                                 } else {
-                                                  safeSetState(() {});
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
                                                   return;
                                                 }
                                               }
 
                                               logFirebaseEvent(
                                                   'Container_update_page_state');
-                                              _model.addToGalleryurls(_model
-                                                  .uploadedFileUrl_uploadDataQpo);
+                                              if (_model
+                                                  .uploadedFileUrl_uploadDataQpo
+                                                  .isNotEmpty) {
+                                                _model.setGalleryUrl(
+                                                  2,
+                                                  _model
+                                                      .uploadedFileUrl_uploadDataQpo,
+                                                );
+                                              }
                                               safeSetState(() {});
                                             },
                                             child: Container(
@@ -1758,7 +1815,7 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                   await selectMediaWithSourceBottomSheet(
                                                 context: context,
                                                 storageFolderPath:
-                                                    'services/[Current User UID]/gallery',
+                                                    'services/$currentUserUid/gallery',
                                                 imageQuality: 80,
                                                 allowPhoto: true,
                                               );
@@ -1804,9 +1861,16 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                     selectedFiles:
                                                         selectedMedia,
                                                   );
+                                                } catch (_) {
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
+                                                  return;
                                                 } finally {
-                                                  _model.isDataUploading_uploadData9t1 =
-                                                      false;
+                                                  safeSetState(() => _model
+                                                          .isDataUploading_uploadData9t1 =
+                                                      false);
                                                 }
                                                 if (selectedUploadedFiles
                                                             .length ==
@@ -1821,15 +1885,25 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                         downloadUrls.first;
                                                   });
                                                 } else {
-                                                  safeSetState(() {});
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
                                                   return;
                                                 }
                                               }
 
                                               logFirebaseEvent(
                                                   'Container_update_page_state');
-                                              _model.addToGalleryurls(_model
-                                                  .uploadedFileUrl_uploadData9t1);
+                                              if (_model
+                                                  .uploadedFileUrl_uploadData9t1
+                                                  .isNotEmpty) {
+                                                _model.setGalleryUrl(
+                                                  3,
+                                                  _model
+                                                      .uploadedFileUrl_uploadData9t1,
+                                                );
+                                              }
                                               safeSetState(() {});
                                             },
                                             child: Container(
@@ -1890,7 +1964,7 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                   await selectMediaWithSourceBottomSheet(
                                                 context: context,
                                                 storageFolderPath:
-                                                    'services/[Current User UID]/gallery',
+                                                    'services/$currentUserUid/gallery',
                                                 maxWidth: 1600.00,
                                                 maxHeight: 1600.00,
                                                 imageQuality: 80,
@@ -1938,9 +2012,16 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                     selectedFiles:
                                                         selectedMedia,
                                                   );
+                                                } catch (_) {
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
+                                                  return;
                                                 } finally {
-                                                  _model.isDataUploading_uploadDataJl9 =
-                                                      false;
+                                                  safeSetState(() => _model
+                                                          .isDataUploading_uploadDataJl9 =
+                                                      false);
                                                 }
                                                 if (selectedUploadedFiles
                                                             .length ==
@@ -1955,15 +2036,25 @@ class _ProviderSetupServicesPageNastaveneWidgetState
                                                         downloadUrls.first;
                                                   });
                                                 } else {
-                                                  safeSetState(() {});
+                                                  showUploadMessage(
+                                                    context,
+                                                    'Fotografiu sa nepodarilo nahrať.',
+                                                  );
                                                   return;
                                                 }
                                               }
 
                                               logFirebaseEvent(
                                                   'Container_update_page_state');
-                                              _model.addToGalleryurls(_model
-                                                  .uploadedFileUrl_uploadDataJl9);
+                                              if (_model
+                                                  .uploadedFileUrl_uploadDataJl9
+                                                  .isNotEmpty) {
+                                                _model.setGalleryUrl(
+                                                  4,
+                                                  _model
+                                                      .uploadedFileUrl_uploadDataJl9,
+                                                );
+                                              }
                                               safeSetState(() {});
                                             },
                                             child: Container(

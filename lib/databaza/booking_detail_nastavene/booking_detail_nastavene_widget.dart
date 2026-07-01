@@ -231,12 +231,41 @@ class _BookingDetailNastaveneWidgetState
                                     5.0, 5.0, 5.0, 5.0),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.only(),
-                                  child: Image.network(
-                                    'https://picsum.photos/seed/641/600',
-                                    width: 274.3,
-                                    height: 150.0,
-                                    fit: BoxFit.cover,
-                                  ),
+                                  child: ((columnProviderServicesRow
+                                                      ?.mainImageUrl
+                                                      ?.isNotEmpty ??
+                                                  false) ||
+                                              (columnProviderServicesRow
+                                                      ?.galleryUrls
+                                                      .isNotEmpty ??
+                                                  false))
+                                      ? Image.network(
+                                          columnProviderServicesRow
+                                                      ?.mainImageUrl
+                                                      ?.isNotEmpty ??
+                                                  false
+                                              ? columnProviderServicesRow!
+                                                  .mainImageUrl!
+                                              : columnProviderServicesRow!
+                                                  .galleryUrls.first,
+                                          width: 274.3,
+                                          height: 150.0,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Image.asset(
+                                            'assets/images/error_image.png',
+                                            width: 274.3,
+                                            height: 150.0,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : Image.asset(
+                                          'assets/images/error_image.png',
+                                          width: 274.3,
+                                          height: 150.0,
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
                               ),
                             ),
@@ -251,6 +280,45 @@ class _BookingDetailNastaveneWidgetState
                                 mainAxisSize: MainAxisSize.max,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (columnProviderServicesRow
+                                          ?.galleryUrls.isNotEmpty ??
+                                      false)
+                                    Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 0.0, 0.0, 16.0),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: columnProviderServicesRow!
+                                              .galleryUrls
+                                              .map(
+                                                (galleryUrl) => ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12.0),
+                                                  child: Image.network(
+                                                    galleryUrl,
+                                                    width: 96.0,
+                                                    height: 76.0,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context,
+                                                            error,
+                                                            stackTrace) =>
+                                                        Image.asset(
+                                                      'assets/images/error_image.png',
+                                                      width: 96.0,
+                                                      height: 76.0,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList()
+                                              .divide(SizedBox(width: 10.0)),
+                                        ),
+                                      ),
+                                    ),
                                   Row(
                                     mainAxisSize: MainAxisSize.max,
                                     mainAxisAlignment:
