@@ -1147,13 +1147,32 @@ class _BusinessDetailNastaveneWidgetState
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(12.0),
-                                                        child: Image.network(
-                                                          businessServiceItemItem
-                                                              .mainImageUrl!,
-                                                          width: 72.0,
-                                                          height: 72.0,
-                                                          fit: BoxFit.cover,
-                                                        ),
+                                                        child: businessServiceItemItem
+                                                                    .mainImageUrl
+                                                                    ?.isNotEmpty ??
+                                                                false
+                                                            ? Image.network(
+                                                                businessServiceItemItem
+                                                                    .mainImageUrl!,
+                                                                width: 72.0,
+                                                                height: 72.0,
+                                                                fit: BoxFit.cover,
+                                                                errorBuilder: (context,
+                                                                        error,
+                                                                        stackTrace) =>
+                                                                    Image.asset(
+                                                                  'assets/images/error_image.png',
+                                                                  width: 72.0,
+                                                                  height: 72.0,
+                                                                  fit: BoxFit.cover,
+                                                                ),
+                                                              )
+                                                            : Image.asset(
+                                                                'assets/images/error_image.png',
+                                                                width: 72.0,
+                                                                height: 72.0,
+                                                                fit: BoxFit.cover,
+                                                              ),
                                                       ),
                                                       Expanded(
                                                         child: Column(

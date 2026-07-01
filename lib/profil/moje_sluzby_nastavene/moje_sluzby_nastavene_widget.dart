@@ -445,6 +445,25 @@ class _MojeSluzbyNastaveneWidgetState extends State<MojeSluzbyNastaveneWidget> {
                                                                 double.infinity,
                                                             height: 180.0,
                                                             fit: BoxFit.cover,
+                                                            errorBuilder: (context,
+                                                                    error,
+                                                                    stackTrace) =>
+                                                                Container(
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .secondaryBackground,
+                                                              alignment:
+                                                                  AlignmentDirectional(
+                                                                      0.0, 0.0),
+                                                              child: Icon(
+                                                                Icons
+                                                                    .image_outlined,
+                                                                color: FlutterFlowTheme
+                                                                        .of(context)
+                                                                    .primary,
+                                                                size: 42.0,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
                                                       Container(

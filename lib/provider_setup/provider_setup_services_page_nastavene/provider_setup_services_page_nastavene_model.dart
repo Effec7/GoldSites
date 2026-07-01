@@ -45,6 +45,30 @@ class ProviderSetupServicesPageNastaveneModel
   void updateGalleryurlsAtIndex(int index, Function(String) updateFn) =>
       galleryurls[index] = updateFn(galleryurls[index]);
 
+  void setGalleryUrl(int slot, String url) {
+    switch (slot) {
+      case 1:
+        gallery1Url = url;
+        break;
+      case 2:
+        gallery2Url = url;
+        break;
+      case 3:
+        gallery3Url = url;
+        break;
+      case 4:
+        gallery4Url = url;
+        break;
+    }
+
+    galleryurls = <String>[
+      if (gallery1Url?.isNotEmpty ?? false) gallery1Url!,
+      if (gallery2Url?.isNotEmpty ?? false) gallery2Url!,
+      if (gallery3Url?.isNotEmpty ?? false) gallery3Url!,
+      if (gallery4Url?.isNotEmpty ?? false) gallery4Url!,
+    ].toSet().toList();
+  }
+
   ///  State fields for stateful widgets in this page.
 
   // State field(s) for Nazovsluzby widget.
