@@ -247,7 +247,7 @@ class _DomovNastaveneWidgetState extends State<DomovNastaveneWidget> {
                                                           EasyDebounce.debounce(
                                                         '_model.textController',
                                                         Duration(
-                                                            milliseconds: 2000),
+                                                            milliseconds: 400),
                                                         () async {
                                                           logFirebaseEvent(
                                                               'DOMOV_NASTAVENE_TextField_8ozasr88_ON_TE');
@@ -256,7 +256,8 @@ class _DomovNastaveneWidgetState extends State<DomovNastaveneWidget> {
                                                           _model.searchText =
                                                               _model
                                                                   .textController
-                                                                  .text;
+                                                                  .text
+                                                                  .trim();
                                                           safeSetState(() {});
                                                           logFirebaseEvent(
                                                               'TextField_refresh_database_request');
@@ -849,13 +850,156 @@ class _DomovNastaveneWidgetState extends State<DomovNastaveneWidget> {
                                                     ..complete(
                                                         ProviderSearchCardsTable()
                                                             .queryRows(
-                                                      queryFn: (q) => q.ilike(
-                                                        'search_text',
-                                                        '%${_model.searchText}%',
-                                                      ),
+                                                      queryFn: (q) => _model
+                                                              .searchText
+                                                              .isEmpty
+                                                          ? q.eqOrNull(
+                                                              'provider_is_active',
+                                                              true,
+                                                            )
+                                                          : q
+                                                              .eqOrNull(
+                                                                'provider_is_active',
+                                                                true,
+                                                              )
+                                                              .ilike(
+                                                                'search_text',
+                                                                '%${_model.searchText}%',
+                                                              ),
                                                     )))
                                               .future,
                                           builder: (context, snapshot) {
+                                            if (snapshot.hasError) {
+                                              return Center(
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Color(0xFFF8F5EE),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16.0),
+                                                    border: Border.all(
+                                                      color: Color(0xFFE8E1D3),
+                                                      width: 1.0,
+                                                    ),
+                                                  ),
+                                                  child: Padding(
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(
+                                                                20.0,
+                                                                24.0,
+                                                                20.0,
+                                                                24.0),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .cloud_off_rounded,
+                                                          color:
+                                                              Color(0xFFC9A84C),
+                                                          size: 32.0,
+                                                        ),
+                                                        Text(
+                                                          'Vyhľadávanie sa nepodarilo',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .titleMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .montserrat(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
+                                                                color: Color(
+                                                                    0xFF202124),
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                        Text(
+                                                          'Skontrolujte pripojenie a skúste to znova.',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                font: GoogleFonts
+                                                                    .montserrat(),
+                                                                color: Color(
+                                                                    0xFF6F6B63),
+                                                                letterSpacing:
+                                                                    0.0,
+                                                              ),
+                                                        ),
+                                                        FFButtonWidget(
+                                                          onPressed: () async {
+                                                            safeSetState(() =>
+                                                                _model.requestCompleter =
+                                                                    null);
+                                                            await _model
+                                                                .waitForRequestCompleted();
+                                                          },
+                                                          text: 'Skúsiť znova',
+                                                          options:
+                                                              FFButtonOptions(
+                                                            height: 42.0,
+                                                            padding:
+                                                                EdgeInsetsDirectional
+                                                                    .fromSTEB(
+                                                                        20.0,
+                                                                        0.0,
+                                                                        20.0,
+                                                                        0.0),
+                                                            iconPadding:
+                                                                EdgeInsetsDirectional
+                                                                    .fromSTEB(
+                                                                        0.0,
+                                                                        0.0,
+                                                                        0.0,
+                                                                        0.0),
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .primary,
+                                                            textStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .titleSmall
+                                                                    .override(
+                                                                      font: GoogleFonts
+                                                                          .montserrat(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                      ),
+                                                                      color: Colors
+                                                                          .white,
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                      fontWeight:
+                                                                          FontWeight.bold,
+                                                                    ),
+                                                            elevation: 0.0,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        18.0),
+                                                          ),
+                                                        ),
+                                                      ].divide(SizedBox(
+                                                          height: 10.0)),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            }
                                             // Customize what your widget looks like when it's loading.
                                             if (!snapshot.hasData) {
                                               return Center(
